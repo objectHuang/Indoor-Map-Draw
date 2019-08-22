@@ -45,7 +45,7 @@ export class MapComponent implements OnInit {
       target: 'map',
       layers: [
         new TileLayer({
-          source: new OSM({ attributions: false }),
+          source: new OSM({ attributions:  "false"}),
           zIndex: 0
         }),
         this.imageLayer,

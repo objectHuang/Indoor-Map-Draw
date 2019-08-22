@@ -15,6 +15,7 @@ import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 
 import GeoSplit from '../../gis-util/index';
+import GeometryType from 'ol/geom/GeometryType';
 @Component({
 	selector: 'map-toolbar',
 	templateUrl: './toolbar.component.html',
@@ -91,7 +92,7 @@ export class ToolbarComponent implements OnInit {
 	editVector(event) {
 		event.stopPropagation();
 		this.clearInteraction();
-		this.pLayer.getStyle().setStroke(this.strokeStyle_e);
+		
 		this.pLayer.changed();
 		// 编辑交互
 		this.polygonModify = new Modify({
@@ -104,20 +105,20 @@ export class ToolbarComponent implements OnInit {
 	drawPolygon(event) {
 		event.stopPropagation();
 		this.clearInteraction();
-		this.addDrawInteractions('Polygon');
+		this.addDrawInteractions(GeometryType.POLYGON);
 	}
 
 	// 绘制矩形
 	drawRec(event) {
 		event.stopPropagation();
 		this.clearInteraction();
-		this.addDrawInteractions('Circle', createBox());
+		this.addDrawInteractions(GeometryType.CIRCLE, createBox());
 	}
 	// 绘制圆
 	drawCircle(event) {
 		event.stopPropagation();
 		this.clearInteraction();
-		this.addDrawInteractions('Circle', createRegularPolygon(0));
+		this.addDrawInteractions(GeometryType.CIRCLE, createRegularPolygon(0));
 	}
 	// 切割多边形
 	splitPolygon(event) {
@@ -150,7 +151,7 @@ export class ToolbarComponent implements OnInit {
 		this.map.removeInteraction(this.polygonSelect);
 		this.map.removeInteraction(this.polygonModify);
 
-		this.pLayer.getStyle().setStroke(this.strokeStyle);
+		
 		this.pLayer.changed();
 
 		if (this.polygonSelect) {
@@ -159,7 +160,7 @@ export class ToolbarComponent implements OnInit {
 	}
 
 	// 添加绘制多边形交互
-	addDrawInteractions(type: string, geoFun?) {
+	addDrawInteractions(type: GeometryType, geoFun?) {
 		this.polygonDraw = new Draw({
 			source: this.pLayerSource,
 			type: type,
@@ -204,7 +205,7 @@ export class ToolbarComponent implements OnInit {
 	drawLineToSpilt() {
 		this.polyLineDraw = new Draw({
 			source: this.sLayerSource,
-			type: 'LineString',
+			type: GeometryType.LINE_STRING,
 			stopClick: true, // 为true时双击结束绘制，不会放大地图
 			style: new Style({ stroke: this.strokeStyle_s })
 		});
@@ -212,7 +213,7 @@ export class ToolbarComponent implements OnInit {
 		this.polyLineDraw.once('drawend', (e) => {
 			this.split(sp, e.feature).then((result) => {
 				let geo = new GeoJSON();
-				let splitResult = geo.readFeatures(result);
+				let splitResult = geo.readFeatures(result.toString());
 				this.pLayerSource.removeFeature(sp);
 				this.pLayerSource.addFeatures(splitResult);
 				// 要放到异步函数中去清空绘制的图层，因为在DRAWEND的时候，绘制的内容还未放到source中
